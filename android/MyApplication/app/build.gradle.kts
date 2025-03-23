@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.watchtogether"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.watchtogether"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -54,6 +54,11 @@ dependencies {
     // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.androidx.constraintlayout)
+
+    // In your app's build.gradle file
+    // Add OkHttp integration for Coil
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
