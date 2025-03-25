@@ -26,7 +26,7 @@ fun HomeScreen(
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
     onCreateGroupClick: () -> Unit = {},
-    onGroupClick: (String) -> Unit = {}
+    onGroupClick: (Int) -> Unit = {}
 ) {
     // Create a nested NavController for the bottom navigation
     val navController = rememberNavController()

@@ -1,17 +1,29 @@
 package com.watchtogether.models
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import java.util.Date
 
+@Serializable
 enum class PollStatus {
+    @SerialName("draft")
+    DRAFT,
+    @SerialName("active")
     ACTIVE,
-    COMPLETED
+    @SerialName("closed")
+    CLOSED
 }
 
+@Serializable
 data class Poll(
     val id: String,
+    @SerialName("group_id")
+    val groupId: Int,
     val title: String,
-    val description: String,
+    val description: String? = null,
     val status: PollStatus,
-    val createdAt: Date,
-    val endDate: Date? = null
+    @SerialName("created_at")
+    val createdAt: String, // Using String for timestamp as it comes in ISO format
+    @SerialName("end_date")
+    val endDate: String? = null
 ) 

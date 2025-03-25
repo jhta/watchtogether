@@ -18,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -26,16 +25,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.watchtogether.models.Poll
 import com.watchtogether.models.PollStatus
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.watchtogether.utils.DateFormatter
 
 @Composable
 fun PollItem(
     poll: Poll,
     onClick: () -> Unit
 ) {
-    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,22 +63,28 @@ fun PollItem(
             }
             
             Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = poll.description,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            poll.description?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Text(
-                text = if (poll.status == PollStatus.ACTIVE) 
-                    "Ends: ${poll.endDate?.let { dateFormat.format(it) } ?: "N/A"}" 
-                else 
-                    "Completed: ${poll.endDate?.let { dateFormat.format(it) } ?: "N/A"}",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            poll.endDate?.let { isoDate ->
+                DateFormatter.formatISODate(isoDate)?.let { formattedDate ->
+                    Text(
+                        text = if (poll.status == PollStatus.ACTIVE)
+                            "Ends: $formattedDate"
+                        else
+                            "Completed: $formattedDate",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 } 

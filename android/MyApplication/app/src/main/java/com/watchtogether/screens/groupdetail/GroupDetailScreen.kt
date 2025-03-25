@@ -1,5 +1,6 @@
 package com.watchtogether.screens.groupdetail
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +11,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,15 +28,46 @@ import com.watchtogether.screens.groupdetail.components.ActivePollsSection
 import com.watchtogether.screens.groupdetail.components.CompletedPollsSection
 import com.watchtogether.screens.groupdetail.components.GroupInfoSection
 import com.watchtogether.screens.groupdetail.components.MembersSection
+import com.watchtogether.supabase
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Date
 
 @Composable
 fun GroupDetailScreen(
-    groupId: String,
+    groupId: Int,
     onBackClick: () -> Unit = {},
-    onCreatePollClick: (String) -> Unit = {},
+    onCreatePollClick: (Int) -> Unit = {},
     onPollClick: (String) -> Unit = {}
 ) {
+    // State for polls
+    var polls by remember { mutableStateOf<List<Poll>>(emptyList()) }
+
+    // Fetch polls from Supabase
+    LaunchedEffect(groupId) {
+        try {
+            withContext(Dispatchers.IO) {
+                val fetchedPolls = supabase
+                    .from("polls")
+                    .select() {
+                        filter {
+                            eq("group_id", groupId)
+
+                        }
+                        order("created_at", order = Order.DESCENDING)
+                    }
+                    .decodeList<Poll>()
+                
+                Log.d("GroupDetailScreen", "Fetched polls: $fetchedPolls")
+                polls = fetchedPolls
+            }
+        } catch (e: Exception) {
+            Log.e("GroupDetailScreen", "Error fetching polls", e)
+        }
+    }
+
     // In a real app, you would fetch the group details based on the groupId
     // For now, we'll create mock data
     val group = remember {
@@ -52,48 +88,6 @@ fun GroupDetailScreen(
             Member("6", "Sarah Wilson"),
             Member("7", "David Taylor"),
             Member("8", "Lisa Anderson")
-        )
-    }
-    
-    val activePolls = remember {
-        listOf(
-            Poll(
-                id = "1",
-                title = "Weekend Movie Night",
-                description = "Vote for this weekend's movie!",
-                status = PollStatus.ACTIVE,
-                createdAt = Date(),
-                endDate = Date(System.currentTimeMillis() + 86400000) // Tomorrow
-            ),
-            Poll(
-                id = "2",
-                title = "Next Week's Marathon",
-                description = "Choose a movie series for next week",
-                status = PollStatus.ACTIVE,
-                createdAt = Date(),
-                endDate = Date(System.currentTimeMillis() + 172800000) // Day after tomorrow
-            )
-        )
-    }
-    
-    val completedPolls = remember {
-        listOf(
-            Poll(
-                id = "3",
-                title = "Last Week's Movie",
-                description = "The Shawshank Redemption won!",
-                status = PollStatus.COMPLETED,
-                createdAt = Date(System.currentTimeMillis() - 604800000), // A week ago
-                endDate = Date(System.currentTimeMillis() - 518400000) // 6 days ago
-            ),
-            Poll(
-                id = "4",
-                title = "Snack Preferences",
-                description = "Popcorn and nachos were the winners!",
-                status = PollStatus.COMPLETED,
-                createdAt = Date(System.currentTimeMillis() - 1209600000), // Two weeks ago
-                endDate = Date(System.currentTimeMillis() - 1123200000) // 13 days ago
-            )
         )
     }
     
@@ -124,7 +118,7 @@ fun GroupDetailScreen(
                 // Active Polls Section
                 item {
                     ActivePollsSection(
-                        activePolls = activePolls,
+                        activePolls = polls.filter { it.status == PollStatus.ACTIVE },
                         onPollClick = { poll -> onPollClick(poll.id) }
                     )
                 }
@@ -132,7 +126,7 @@ fun GroupDetailScreen(
                 // Completed Polls Section
                 item {
                     CompletedPollsSection(
-                        completedPolls = completedPolls,
+                        completedPolls = polls.filter { it.status == PollStatus.CLOSED},
                         onPollClick = { poll -> onPollClick(poll.id) }
                     )
                 }

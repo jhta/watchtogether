@@ -26,10 +26,10 @@ object AppDestinations {
     const val VOTE_SUCCESS_ROUTE = "vote_success/{pollId}"
     
     // Helper function to create group detail route with groupId
-    fun groupDetailRoute(groupId: String): String = "group_detail/$groupId"
+    fun groupDetailRoute(groupId: Int): String = "group_detail/$groupId"
     
     // Helper function to create poll creation route with groupId
-    fun createPollRoute(groupId: String): String = "create_poll/$groupId"
+    fun createPollRoute(groupId: Int): String = "create_poll/$groupId"
     
     // Helper function to create poll detail route with pollId
     fun pollDetailRoute(pollId: String): String = "poll/$pollId"
@@ -94,7 +94,7 @@ fun AppNavigation() {
                 navArgument("groupId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            val groupId = backStackEntry.arguments?.getString("groupId")?.toInt() ?: 0
             GroupDetailScreen(
                 groupId = groupId,
                 onBackClick = {

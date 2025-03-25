@@ -1,7 +1,12 @@
 package com.watchtogether.models
 
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
+@Serializable
 data class Group(
-    val id: String,
+    val id: Int,
     val name: String,
-    val participantCount: Int
+    @SerialName("participant_count")
+    val participantCount: Int = 1
 ) 
