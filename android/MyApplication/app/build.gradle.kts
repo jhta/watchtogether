@@ -21,12 +21,47 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Load debug environment variables from local.properties
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                val properties = localPropertiesFile.readLines()
+                    .filter { it.isNotBlank() && !it.startsWith("#") }
+                    .associate { 
+                        val parts = it.split("=", limit = 2)
+                        if (parts.size == 2) parts[0] to parts[1].trim() else "" to ""
+                    }
+                
+                // Helper function to properly escape strings for buildConfigField
+                fun escapeString(str: String): String {
+                    return str.replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                }
+                
+                val supabaseUrl = properties["SUPABASE_URL"] ?: ""
+                val supabaseKey = properties["SUPABASE_KEY"] ?: ""
+                
+                buildConfigField("String", "SUPABASE_URL", "\"${escapeString(supabaseUrl)}\"")
+                buildConfigField("String", "SUPABASE_KEY", "\"${escapeString(supabaseKey)}\"")
+            }
+        }
+        
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            // Use environment variables from CI/CD if available, otherwise empty
+            val supabaseUrl = System.getenv("SUPABASE_URL") ?: ""
+            val supabaseKey = System.getenv("SUPABASE_KEY") ?: ""
+            
+            // Helper function to properly escape strings for buildConfigField
+            fun escapeString(str: String): String {
+                return str.replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+            }
+            
+            buildConfigField("String", "SUPABASE_URL", "\"${escapeString(supabaseUrl)}\"")
+            buildConfigField("String", "SUPABASE_KEY", "\"${escapeString(supabaseKey)}\"")
+            
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
     compileOptions {
@@ -38,6 +73,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -82,4 +118,11 @@ dependencies {
 
     // Add Kotlin serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+
+    // Koin Dependency Injection
+    implementation("io.insert-koin:koin-android:3.5.0")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
+    
+    // DotEnv for environment variables
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 }
