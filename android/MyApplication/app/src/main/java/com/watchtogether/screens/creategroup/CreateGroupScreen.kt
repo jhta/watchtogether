@@ -2,32 +2,46 @@ package com.watchtogether.screens.creategroup
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.watchtogether.components.AppScaffold
 import com.watchtogether.screens.creategroup.components.GroupNameInput
 import com.watchtogether.screens.creategroup.components.InvitationCodeDialog
 import com.watchtogether.screens.creategroup.modifiers.CreateGroupModifiers
 import com.watchtogether.ui.modifiers.CommonModifiers
-import java.util.UUID
+import com.watchtogether.ui.viewmodels.CreateGroupViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun CreateGroupScreen(
     onBackClick: () -> Unit = {},
-    onCreateGroup: (String) -> Unit = {}
+    onCreateSuccess: (Int) -> Unit = {},
+    viewModel: CreateGroupViewModel = koinViewModel()
 ) {
-    // State for the group name input
-    val groupName = remember { mutableStateOf("") }
+    // Get UI state from ViewModel
+    val uiState by viewModel.uiState.collectAsState()
     
-    // State for showing the invitation code dialog
-    val showInvitationDialog = remember { mutableStateOf(false) }
+    // Local state for the group name input
+    var groupName by remember { mutableStateOf("") }
     
-    // Generate a unique invitation code
-    val invitationCode = remember { 
-        UUID.randomUUID().toString().substring(0, 8).uppercase() 
+    // Dialog control state
+    var showInvitationDialog by remember { mutableStateOf(false) }
+    
+    // Success effect to show dialog after group creation
+    LaunchedEffect(uiState.success) {
+        if (uiState.success && uiState.createdGroup != null) {
+            showInvitationDialog = true
+        }
     }
     
     AppScaffold(
@@ -40,34 +54,47 @@ fun CreateGroupScreen(
         ) {
             // Group name input
             GroupNameInput(
-                groupName = groupName.value,
-                onGroupNameChange = { groupName.value = it }
+                groupName = groupName,
+                onGroupNameChange = { groupName = it },
+                enabled = !uiState.isLoading,
+                errorMessage = uiState.error
             )
             
             // Create button
             Button(
-                onClick = { 
-                    if (groupName.value.isNotEmpty()) {
-                        showInvitationDialog.value = true
-                    }
-                },
-                enabled = groupName.value.isNotEmpty(),
+                onClick = { viewModel.createGroup(groupName) },
+                enabled = groupName.isNotEmpty() && !uiState.isLoading,
                 modifier = CreateGroupModifiers.createButton()
             ) {
-                Text("Create Group")
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Create Group")
+                }
             }
         }
         
         // Invitation Code Dialog
-        InvitationCodeDialog(
-            showDialog = showInvitationDialog.value,
-            groupName = groupName.value,
-            invitationCode = invitationCode,
-            onDismiss = { showInvitationDialog.value = false },
-            onConfirm = {
-                showInvitationDialog.value = false
-                onCreateGroup(groupName.value)
-            }
-        )
+        if (showInvitationDialog && uiState.createdGroup != null) {
+            val createdGroup = uiState.createdGroup!!
+            
+            InvitationCodeDialog(
+                showDialog = true,
+                groupName = createdGroup.name,
+                invitationCode = uiState.invitationCode,
+                onDismiss = {
+                    showInvitationDialog = false
+                    viewModel.resetState()
+                },
+                onConfirm = {
+                    showInvitationDialog = false
+                    viewModel.resetState()
+                    onCreateSuccess(createdGroup.id)
+                }
+            )
+        }
     }
 } 
