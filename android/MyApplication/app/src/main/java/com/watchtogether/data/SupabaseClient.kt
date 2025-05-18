@@ -1,10 +1,13 @@
 package com.watchtogether.data
 
 import android.content.Context
+import android.util.Log
 import com.watchtogether.utils.Environment
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.FlowType
 
 /**
  * Singleton class that manages the Supabase client instance.
@@ -31,11 +34,28 @@ object SupabaseManager {
      * @return A new SupabaseClient instance.
      */
     private fun createClient(context: Context): SupabaseClient {
+        val supabaseUrl = Environment.getSupabaseUrl(context)
+        val supabaseKey = Environment.getSupabaseKey(context)
+        
+        Log.d("SupabaseManager", "Creating client with URL: $supabaseUrl")
+        
         return createSupabaseClient(
-            supabaseUrl = Environment.getSupabaseUrl(context),
-            supabaseKey = Environment.getSupabaseKey(context)
+            supabaseUrl = supabaseUrl,
+            supabaseKey = supabaseKey
         ) {
             install(Postgrest)
+            install(Auth) {
+                // Configure for deep linking with OAuth providers
+                scheme = "com.watchtogether"
+                host = "login-callback"
+                flowType = FlowType.PKCE  // Use PKCE flow for better mobile security
+                
+                // Enable debug logs for auth
+//                debug = true
+                
+                // Add a custom redirect URL
+//                redirectUrl = "com.watchtogether://login-callback"
+            }
             // Add other plugins as needed
         }
     }

@@ -1,39 +1,60 @@
 package com.watchtogether.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.watchtogether.R
 import com.watchtogether.components.AppScaffold
 import com.watchtogether.ui.theme.WatchTogetherTheme
+import com.watchtogether.ui.viewmodels.AuthViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun WelcomeScreen(
-    onSignUpClicked: () -> Unit = {},
-    onLoginClicked: () -> Unit = {}
+    onSignInSuccess: () -> Unit = {},
+    viewModel: AuthViewModel = koinViewModel()
 ) {
-    // State to control the visibility of the dialogs
-    val showSignUpDialog = remember { mutableStateOf(false) }
-    val showLoginDialog = remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+    
+    // Effect to handle navigation when logged in
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn && uiState.user != null) {
+            Log.d("WelcomeScreen", "User is logged in, navigating to Home")
+            onSignInSuccess()
+        }
+    }
+    
+    // If already logged in, don't render the rest of the screen
+    if (uiState.isLoggedIn && uiState.user != null) {
+        return
+    }
     
     AppScaffold(
         title = "",  // Empty title for welcome screen
@@ -62,25 +83,53 @@ fun WelcomeScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 
-                // Push buttons to the bottom with a spacer
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                // Sign Up button (primary)
-                Button(
-                    onClick = { onSignUpClicked() },
+                Text(
+                    text = "Watch movies and decide what to watch together with your friends",
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Sign Up", modifier = Modifier.padding(vertical = 8.dp))
+                )
+                
+                // Error message if any
+                if (uiState.error != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Push button to the bottom with a spacer
+                Spacer(modifier = Modifier.weight(1f))
                 
-                // Login button (secondary)
+                // Google sign in button
                 OutlinedButton(
-                    onClick = { onLoginClicked() },
+                    onClick = { viewModel.signInWithGoogle() },
+                    enabled = !uiState.isLoading,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Login", modifier = Modifier.padding(vertical = 8.dp))
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_google),
+                                contentDescription = "Google",
+                                modifier = Modifier.size(20.dp),
+                                tint = Color.Unspecified
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Sign in with Google")
+                        }
+                    }
                 }
             }
         }

@@ -39,20 +39,20 @@ object AppDestinations {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(initialRoute: String = AppDestinations.WELCOME_ROUTE) {
     val navController = rememberNavController()
     
     NavHost(
         navController = navController,
-        startDestination = AppDestinations.WELCOME_ROUTE
+        startDestination = initialRoute
     ) {
         composable(AppDestinations.WELCOME_ROUTE) {
             WelcomeScreen(
-                onSignUpClicked = { 
-                    navController.navigate(AppDestinations.HOME_ROUTE)
-                },
-                onLoginClicked = { 
-                    navController.navigate(AppDestinations.HOME_ROUTE)
+                onSignInSuccess = { 
+                    navController.navigate(AppDestinations.HOME_ROUTE) {
+                        // Clear the back stack so user can't go back to welcome screen after login
+                        popUpTo(AppDestinations.WELCOME_ROUTE) { inclusive = true }
+                    }
                 }
             )
         }
@@ -77,7 +77,7 @@ fun AppNavigation() {
                 onBackClick = {
                     navController.navigateUp()
                 },
-                onCreateGroup = { groupName ->
+                onCreateSuccess = {
                     // Navigate back to home after creating the group
                     navController.navigateUp()
                     

@@ -32,6 +32,7 @@ class CreateGroupViewModel(
     val uiState: StateFlow<CreateGroupUiState> = _uiState.asStateFlow()
     
     fun createGroup(name: String) {
+        Log.d("CreateGroupViewModel", "Creating group with name: $name")
         if (name.isBlank()) return
         
         viewModelScope.launch {
