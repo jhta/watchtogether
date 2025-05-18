@@ -1,28 +1,22 @@
 package com.watchtogether
 
 import android.app.Application
+import com.watchtogether.data.SupabaseManager
 import com.watchtogether.di.appModule
-import com.watchtogether.utils.Environment
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.SupabaseClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
 // Lazily initialize Supabase client
-lateinit var supabase: io.github.jan.supabase.SupabaseClient
+lateinit var supabase: SupabaseClient
 
 class WatchTogetherApp : Application() {
     
     override fun onCreate() {
         super.onCreate()
         
-        // Initialize Supabase with environment variables and application context
-        supabase = createSupabaseClient(
-            supabaseUrl = Environment.getSupabaseUrl(this),
-            supabaseKey = Environment.getSupabaseKey(this)
-        ) {
-            install(Postgrest)
-        }
+        // Initialize Supabase client using the SupabaseManager
+        supabase = SupabaseManager.getClient(this)
         
         // Initialize Koin for dependency injection
         startKoin {

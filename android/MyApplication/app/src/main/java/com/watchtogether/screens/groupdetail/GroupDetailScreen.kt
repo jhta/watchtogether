@@ -12,6 +12,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,50 +23,28 @@ import androidx.compose.ui.unit.dp
 import com.watchtogether.components.AppScaffold
 import com.watchtogether.models.Group
 import com.watchtogether.models.Member
-import com.watchtogether.models.Poll
 import com.watchtogether.models.PollStatus
 import com.watchtogether.screens.groupdetail.components.ActivePollsSection
 import com.watchtogether.screens.groupdetail.components.CompletedPollsSection
 import com.watchtogether.screens.groupdetail.components.GroupInfoSection
 import com.watchtogether.screens.groupdetail.components.MembersSection
-import com.watchtogether.supabase
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Order
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.util.Date
+import com.watchtogether.ui.viewmodels.GroupDetailViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun GroupDetailScreen(
     groupId: Int,
     onBackClick: () -> Unit = {},
     onCreatePollClick: (Int) -> Unit = {},
-    onPollClick: (String) -> Unit = {}
+    onPollClick: (String) -> Unit = {},
+    viewModel: GroupDetailViewModel = koinViewModel()
 ) {
-    // State for polls
-    var polls by remember { mutableStateOf<List<Poll>>(emptyList()) }
+    // Get UI state from ViewModel
+    val uiState by viewModel.uiState.collectAsState()
 
-    // Fetch polls from Supabase
+    // Load polls when the screen is first displayed
     LaunchedEffect(groupId) {
-        try {
-            withContext(Dispatchers.IO) {
-                val fetchedPolls = supabase
-                    .from("polls")
-                    .select() {
-                        filter {
-                            eq("group_id", groupId)
-
-                        }
-                        order("created_at", order = Order.DESCENDING)
-                    }
-                    .decodeList<Poll>()
-                
-                Log.d("GroupDetailScreen", "Fetched polls: $fetchedPolls")
-                polls = fetchedPolls
-            }
-        } catch (e: Exception) {
-            Log.e("GroupDetailScreen", "Error fetching polls", e)
-        }
+        viewModel.loadPolls(groupId)
     }
 
     // In a real app, you would fetch the group details based on the groupId
@@ -118,7 +97,7 @@ fun GroupDetailScreen(
                 // Active Polls Section
                 item {
                     ActivePollsSection(
-                        activePolls = polls.filter { it.status == PollStatus.ACTIVE },
+                        activePolls = uiState.polls.filter { it.status == PollStatus.ACTIVE },
                         onPollClick = { poll -> onPollClick(poll.id) }
                     )
                 }
@@ -126,7 +105,7 @@ fun GroupDetailScreen(
                 // Completed Polls Section
                 item {
                     CompletedPollsSection(
-                        completedPolls = polls.filter { it.status == PollStatus.CLOSED},
+                        completedPolls = uiState.polls.filter { it.status == PollStatus.CLOSED},
                         onPollClick = { poll -> onPollClick(poll.id) }
                     )
                 }

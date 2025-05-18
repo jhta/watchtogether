@@ -2,12 +2,14 @@ package com.watchtogether.data.repositories
 
 import android.util.Log
 import com.watchtogether.models.Group
-import com.watchtogether.supabase
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class GroupRepository {
+class GroupRepository(
+    private val supabase: SupabaseClient
+) {
     
     suspend fun getGroups(): Result<List<Group>> = withContext(Dispatchers.IO) {
         try {
