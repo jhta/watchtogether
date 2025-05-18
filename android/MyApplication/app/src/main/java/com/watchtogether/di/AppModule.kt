@@ -3,6 +3,7 @@ package com.watchtogether.di
 import com.watchtogether.data.SupabaseManager
 import com.watchtogether.data.repositories.GroupRepository
 import com.watchtogether.data.repositories.PollRepository
+import com.watchtogether.ui.viewmodels.CreateGroupViewModel
 import com.watchtogether.ui.viewmodels.GroupDetailViewModel
 import com.watchtogether.ui.viewmodels.GroupsViewModel
 import io.github.jan.supabase.SupabaseClient
@@ -20,4 +21,5 @@ val appModule = module {
     // ViewModels
     viewModel { GroupsViewModel(get()) }
     viewModel { GroupDetailViewModel(get()) }
+    viewModel { CreateGroupViewModel(get()) }
 } 
