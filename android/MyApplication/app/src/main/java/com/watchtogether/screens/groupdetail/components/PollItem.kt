@@ -73,7 +73,7 @@ fun PollItem(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            poll.endDate?.let { isoDate ->
+            poll.endsAt?.let { isoDate ->
                 DateFormatter.formatISODate(isoDate)?.let { formattedDate ->
                     Text(
                         text = if (poll.status == PollStatus.ACTIVE)

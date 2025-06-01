@@ -17,6 +17,8 @@ data class CreateGroupUiState(
     val error: String? = null,
     val success: Boolean = false,
     val createdGroup: Group? = null,
+    val name: String = "",
+    val description: String = "",
     val invitationCode: String = generateInvitationCode()
 )
 
@@ -31,14 +33,25 @@ class CreateGroupViewModel(
     private val _uiState = MutableStateFlow(CreateGroupUiState())
     val uiState: StateFlow<CreateGroupUiState> = _uiState.asStateFlow()
     
-    fun createGroup(name: String) {
-        Log.d("CreateGroupViewModel", "Creating group with name: $name")
+    fun updateName(name: String) {
+        _uiState.update { it.copy(name = name) }
+    }
+    
+    fun updateDescription(description: String) {
+        _uiState.update { it.copy(description = description) }
+    }
+    
+    fun createGroup() {
+        val name = _uiState.value.name
+        val description = _uiState.value.description.ifBlank { null }
+        
+        Log.d("CreateGroupViewModel", "Creating group with name: $name, description: $description")
         if (name.isBlank()) return
         
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, success = false) }
             
-            groupRepository.createGroup(name)
+            groupRepository.createGroup(name, description)
                 .onSuccess { group ->
                     _uiState.update { 
                         it.copy(

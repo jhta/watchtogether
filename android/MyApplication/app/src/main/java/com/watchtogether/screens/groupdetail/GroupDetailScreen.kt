@@ -36,7 +36,7 @@ fun GroupDetailScreen(
     groupId: Int,
     onBackClick: () -> Unit = {},
     onCreatePollClick: (Int) -> Unit = {},
-    onPollClick: (String) -> Unit = {},
+    onPollClick: (Int) -> Unit = {},
     viewModel: GroupDetailViewModel = koinViewModel()
 ) {
     // Get UI state from ViewModel
@@ -53,7 +53,11 @@ fun GroupDetailScreen(
         Group(
             id = groupId,
             name = "Movie Night Club",
-            participantCount = 8
+            participantCount = 8,
+            description = "A group for movie enthusiasts to discuss and vote on movies to watch together.",
+            createdAt =   "2023-10-01T12:00:00Z",
+            createdBy =  "John Doe",
+            updatedAt = "2023-10-01T12:00:00Z"
         )
     }
     
@@ -105,7 +109,7 @@ fun GroupDetailScreen(
                 // Completed Polls Section
                 item {
                     CompletedPollsSection(
-                        completedPolls = uiState.polls.filter { it.status == PollStatus.CLOSED},
+                        completedPolls = uiState.polls.filter { it.status == PollStatus.COMPLETED},
                         onPollClick = { poll -> onPollClick(poll.id) }
                     )
                 }

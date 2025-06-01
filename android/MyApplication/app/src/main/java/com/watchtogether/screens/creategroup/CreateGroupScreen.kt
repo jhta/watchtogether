@@ -1,8 +1,11 @@
 package com.watchtogether.screens.creategroup
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,9 +34,6 @@ fun CreateGroupScreen(
     // Get UI state from ViewModel
     val uiState by viewModel.uiState.collectAsState()
     
-    // Local state for the group name input
-    var groupName by remember { mutableStateOf("") }
-    
     // Dialog control state
     var showInvitationDialog by remember { mutableStateOf(false) }
     
@@ -54,16 +54,31 @@ fun CreateGroupScreen(
         ) {
             // Group name input
             GroupNameInput(
-                groupName = groupName,
-                onGroupNameChange = { groupName = it },
+                groupName = uiState.name,
+                onGroupNameChange = { viewModel.updateName(it) },
                 enabled = !uiState.isLoading,
                 errorMessage = uiState.error
             )
             
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Group description input (optional)
+            OutlinedTextField(
+                value = uiState.description,
+                onValueChange = { viewModel.updateDescription(it) },
+                label = { Text("Description (Optional)") },
+                enabled = !uiState.isLoading,
+                modifier = CommonModifiers.inputField(),
+                singleLine = false,
+                maxLines = 3
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
             // Create button
             Button(
-                onClick = { viewModel.createGroup(groupName) },
-                enabled = groupName.isNotEmpty() && !uiState.isLoading,
+                onClick = { viewModel.createGroup() },
+                enabled = uiState.name.isNotEmpty() && !uiState.isLoading,
                 modifier = CreateGroupModifiers.createButton()
             ) {
                 if (uiState.isLoading) {

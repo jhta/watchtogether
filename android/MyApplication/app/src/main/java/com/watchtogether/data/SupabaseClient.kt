@@ -43,7 +43,9 @@ object SupabaseManager {
             supabaseUrl = supabaseUrl,
             supabaseKey = supabaseKey
         ) {
-            install(Postgrest)
+            install(Postgrest) {
+                defaultSchema = "movie_namespace"  // Set the default schema for all queries
+            }
             install(Auth) {
                 // Configure for deep linking with OAuth providers
                 scheme = "com.watchtogether"
