@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ fun GroupsScreen(
     modifier: Modifier = Modifier,
     onCreateGroupClick: () -> Unit = {},
     onGroupClick: (Int) -> Unit = {},
+    shouldRefresh: Boolean = false,
     viewModel: GroupsViewModel = koinViewModel()
 ) {
     // Collect the UI state from the ViewModel
@@ -41,6 +43,13 @@ fun GroupsScreen(
 
     // State for selected group and dialog visibility
     val selectedGroup = remember { mutableStateOf<Group?>(null) }
+    
+    // Refresh groups when shouldRefresh changes to true
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            viewModel.refreshGroups()
+        }
+    }
     
     Box(
         modifier = GroupsModifiers.rootContainer

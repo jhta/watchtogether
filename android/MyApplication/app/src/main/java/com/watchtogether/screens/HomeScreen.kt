@@ -26,7 +26,8 @@ fun HomeScreen(
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
     onCreateGroupClick: () -> Unit = {},
-    onGroupClick: (Int) -> Unit = {}
+    onGroupClick: (Int) -> Unit = {},
+    shouldRefresh: Boolean = false
 ) {
     // Create a nested NavController for the bottom navigation
     val navController = rememberNavController()
@@ -52,7 +53,8 @@ fun HomeScreen(
             composable(BottomNavItem.Groups.route) {
                 GroupsScreen(
                     onCreateGroupClick = onCreateGroupClick,
-                    onGroupClick = onGroupClick
+                    onGroupClick = onGroupClick,
+                    shouldRefresh = shouldRefresh
                 )
             }
             composable(BottomNavItem.WatchList.route) {

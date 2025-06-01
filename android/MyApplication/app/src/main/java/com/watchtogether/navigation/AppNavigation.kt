@@ -58,6 +58,17 @@ fun AppNavigation(initialRoute: String = AppDestinations.WELCOME_ROUTE) {
         }
         
         composable(AppDestinations.HOME_ROUTE) {
+            val shouldRefresh = navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.get<Boolean>("refresh_groups") ?: false
+            
+            // Clear the refresh flag after reading it
+            if (shouldRefresh) {
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("refresh_groups", false)
+            }
+            
             HomeScreen(
                 showBackButton = true,
                 onBackClick = { 
@@ -68,7 +79,8 @@ fun AppNavigation(initialRoute: String = AppDestinations.WELCOME_ROUTE) {
                 },
                 onGroupClick = { groupId ->
                     navController.navigate(AppDestinations.groupDetailRoute(groupId))
-                }
+                },
+                shouldRefresh = shouldRefresh
             )
         }
         
@@ -78,12 +90,11 @@ fun AppNavigation(initialRoute: String = AppDestinations.WELCOME_ROUTE) {
                     navController.navigateUp()
                 },
                 onCreateSuccess = {
-                    // Navigate back to home after creating the group
+                    // Set refresh flag and navigate back to home
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_groups", true)
                     navController.navigateUp()
-                    
-                    // In a real app, you would save the group to a database here
-                    // and then navigate to the group detail screen
-                    // navController.navigate(AppDestinations.groupDetailRoute(newGroupId))
                 }
             )
         }
@@ -104,7 +115,7 @@ fun AppNavigation(initialRoute: String = AppDestinations.WELCOME_ROUTE) {
                     navController.navigate(AppDestinations.createPollRoute(groupId))
                 },
                 onPollClick = { pollId ->
-                    navController.navigate(AppDestinations.pollDetailRoute(pollId))
+                    navController.navigate(AppDestinations.pollDetailRoute(pollId.toString()))
                 }
             )
         }
