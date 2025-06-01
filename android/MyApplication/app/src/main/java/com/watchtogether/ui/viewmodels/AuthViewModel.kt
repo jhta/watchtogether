@@ -18,7 +18,8 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
     val user: UserInfo? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isInitialCheckComplete: Boolean = false
 )
 
 /**
@@ -37,19 +38,47 @@ class AuthViewModel(
     
     /**
      * Check current authentication state and update UI state
+     * Modern Supabase-kt automatically handles session loading from storage
      */
     private fun checkCurrentAuthState() {
-        val isLoggedIn = authRepository.isLoggedIn()
-        val currentUser = authRepository.getCurrentUser()
-        
-        _uiState.update { 
-            it.copy(
-                isLoggedIn = isLoggedIn,
-                user = currentUser
-            )
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoading = true) }
+                
+                // Check auth state - Supabase-kt automatically loads from storage
+                val isLoggedIn = authRepository.isLoggedIn()
+                val currentUser = authRepository.getCurrentUser()
+                
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        isLoggedIn = isLoggedIn,
+                        user = currentUser,
+                        isInitialCheckComplete = true,
+                        error = null
+                    )
+                }
+                
+                Log.d("AuthViewModel", "Auth state checked. Logged in: $isLoggedIn, User: ${currentUser?.id}")
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error checking auth state", e)
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        isInitialCheckComplete = true,
+                        error = "Failed to check authentication state"
+                    )
+                }
+            }
         }
-        
-        Log.d("AuthViewModel", "Auth state checked. Logged in: $isLoggedIn, User: $currentUser")
+    }
+    
+    /**
+     * Refresh the current authentication state
+     * Useful when returning from OAuth flow
+     */
+    fun refreshAuthState() {
+        checkCurrentAuthState()
     }
     
     /**

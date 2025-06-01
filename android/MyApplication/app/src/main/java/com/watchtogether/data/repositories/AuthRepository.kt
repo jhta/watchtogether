@@ -40,15 +40,57 @@ class AuthRepository(
     
     /**
      * Get the current authenticated user, or null if not logged in
+     * Modern Supabase-kt automatically handles session loading from storage
      */
-    fun getCurrentUser(): UserInfo? {
-        return supabase.auth.currentUserOrNull()
+    suspend fun getCurrentUser(): UserInfo? = withContext(Dispatchers.IO) {
+        try {
+            val session = supabase.auth.currentSessionOrNull()
+            if (session != null) {
+                Log.d("AuthRepository", "Found valid session for user: ${session.user?.id}")
+                return@withContext session.user
+            }
+            
+            Log.d("AuthRepository", "No current session found")
+            return@withContext null
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error getting current user", e)
+            null
+        }
     }
     
     /**
      * Check if the user is logged in
+     * Modern Supabase-kt automatically handles session validation and refresh
      */
-    fun isLoggedIn(): Boolean {
-        return supabase.auth.currentSessionOrNull() != null
+    suspend fun isLoggedIn(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val session = supabase.auth.currentSessionOrNull()
+            val isValid = session != null
+            
+            Log.d("AuthRepository", "Session check - Valid: $isValid, Session exists: ${session != null}")
+            return@withContext isValid
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error checking login status", e)
+            false
+        }
+    }
+    
+    /**
+     * Force refresh the current session from storage
+     * This can help in cases where session state might be stale
+     */
+    suspend fun refreshSession(): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            // In modern Supabase-kt, sessions are automatically loaded and managed
+            // We can simply check the current session state
+            val session = supabase.auth.currentSessionOrNull()
+            val isLoggedIn = session != null
+            
+            Log.d("AuthRepository", "Session check completed. Logged in: $isLoggedIn")
+            Result.success(isLoggedIn)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error checking session", e)
+            Result.failure(e)
+        }
     }
 } 

@@ -34,6 +34,7 @@ import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.handleDeeplinks
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
@@ -67,7 +68,6 @@ class OAuthCallbackActivity : ComponentActivity() {
                     // Handle the OAuth callback
                     LaunchedEffect(Unit) {
                         try {
-                            // Check session before handling deep link
                             withContext(Dispatchers.IO) {
                                 val sessionBefore = supabase.auth.currentSessionOrNull()
                                 Log.d("OAuthCallback", "Session before handling deep link: ${sessionBefore != null}")
@@ -77,9 +77,21 @@ class OAuthCallbackActivity : ComponentActivity() {
                                 val success = supabase.handleDeeplinks(intent)
                                 Log.d("OAuthCallback", "Deep link handled: $success")
                                 
+                                // Give some time for session processing
+                                delay(500)
+                                
+                                // Modern Supabase-kt automatically saves sessions to storage
+                                // No need to manually call saveToStorage()
+                                
                                 // Check session after handling deep link
                                 val sessionAfter = supabase.auth.currentSessionOrNull()
                                 Log.d("OAuthCallback", "Session after handling deep link: ${sessionAfter != null}")
+                                
+                                if (sessionAfter != null) {
+                                    Log.d("OAuthCallback", "Authentication successful, user: ${sessionAfter.user?.id}")
+                                } else {
+                                    Log.w("OAuthCallback", "No session found after deep link handling")
+                                }
                             }
                             
                             // Navigate to home screen on success

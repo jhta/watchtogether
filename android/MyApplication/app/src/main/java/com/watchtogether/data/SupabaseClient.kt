@@ -52,11 +52,12 @@ object SupabaseManager {
                 host = "login-callback"
                 flowType = FlowType.PKCE  // Use PKCE flow for better mobile security
                 
-                // Enable debug logs for auth
-//                debug = true
+                // CRITICAL: Enable session persistence - sessions are automatically persisted by default
+                // The Auth plugin automatically handles session storage in encrypted SharedPreferences
+                // No additional configuration needed for session persistence
                 
-                // Add a custom redirect URL
-//                redirectUrl = "com.watchtogether://login-callback"
+                // Enable debug logs for auth
+                // debug = true
             }
             // Add other plugins as needed
         }

@@ -108,7 +108,6 @@ dependencies {
 
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
-
     // Supabase
     implementation(platform("io.github.jan-tennert.supabase:bom:3.1.3"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
