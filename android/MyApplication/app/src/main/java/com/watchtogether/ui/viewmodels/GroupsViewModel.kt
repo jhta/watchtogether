@@ -27,7 +27,7 @@ class GroupsViewModel(
         loadGroups()
     }
     
-    fun loadGroups() {
+    private fun loadGroups() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
@@ -49,6 +49,10 @@ class GroupsViewModel(
                     }
                 }
         }
+    }
+    
+    fun refreshGroups() {
+        loadGroups()
     }
     
     fun createGroup(name: String, onSuccess: (Group) -> Unit) {
