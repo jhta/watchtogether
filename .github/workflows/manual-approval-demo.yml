@@ -26,6 +26,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Request Manual Approval
         uses: trstringer/manual-approval@v1
         with:
@@ -71,25 +76,22 @@ jobs:
           echo "✅ Success message file created at /tmp/workflow-data/success-message.txt"
           echo "📂 File size: $(wc -c < /tmp/workflow-data/success-message.txt) bytes"
 
-      - name: Read and Display Success Message
+      - name: Read and Display Success Message with TypeScript
         run: |
-          echo "📖 Reading success message from temporary file..."
-          echo "==================== SUCCESS MESSAGE ===================="
-          cat /tmp/workflow-data/success-message.txt
-          echo "========================================================"
-          echo ""
-          echo "✅ This demonstrates how to pass data between workflow steps using files"
-          echo "🔐 This pattern can be used for secrets, configuration, or any data sharing"
+          echo "🚀 Executing TypeScript script to read temporary file..."
+          npx ts-node scripts/read-temp-file.ts
+          echo "✅ TypeScript script execution completed!"
 
       - name: Additional Operations Step
         run: |
           echo "🚀 This is where you could add deployment or critical operations"
-          echo "📄 We have access to the success message file for any additional processing"
+          echo "📄 The TypeScript script has processed the temporary file"
+          echo "🎯 This demonstrates integrating TypeScript scripts in GitHub Actions"
           echo ""
-          echo "📊 File contents summary:"
-          echo "- Lines: $(wc -l < /tmp/workflow-data/success-message.txt)"
-          echo "- Words: $(wc -w < /tmp/workflow-data/success-message.txt)"
-          echo "- Characters: $(wc -c < /tmp/workflow-data/success-message.txt)"
+          echo "🔧 Available tools:"
+          echo "  - TypeScript for complex file processing"
+          echo "  - Node.js runtime environment"
+          echo "  - Custom scripts for workflow automation"
 
       - name: Cleanup Temporary Files
         run: |
