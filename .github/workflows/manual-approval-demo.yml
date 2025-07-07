@@ -53,17 +53,46 @@ jobs:
           exclude-workflow-initiator-as-approver: false
           fail-on-denial: true
 
-      - name: Log Success Message
+      - name: Create Success Message File
         run: |
-          echo "🎉 Workflow approved successfully!"
-          echo "📝 Message: ${{ github.event.inputs.message || 'Hello from approved workflow!' }}"
-          echo "👤 Approved by workflow initiator: ${{ github.actor }}"
-          echo "🌟 Timestamp: $(date)"
-          echo "🔗 Repository: ${{ github.repository }}"
-          echo "🎯 Branch: ${{ github.ref_name }}"
+          # Create a temporary file with success information
+          mkdir -p /tmp/workflow-data
+          cat > /tmp/workflow-data/success-message.txt << EOF
+          🎉 Workflow approved successfully!
+          📝 Message: ${{ github.event.inputs.message || 'Hello from approved workflow!' }}
+          👤 Approved by workflow initiator: ${{ github.actor }}
+          🌟 Timestamp: $(date)
+          🔗 Repository: ${{ github.repository }}
+          🎯 Branch: ${{ github.ref_name }}
+          🆔 Workflow Run ID: ${{ github.run_id }}
+          🔢 Workflow Run Number: ${{ github.run_number }}
+          EOF
 
-      - name: Additional Success Step
+          echo "✅ Success message file created at /tmp/workflow-data/success-message.txt"
+          echo "📂 File size: $(wc -c < /tmp/workflow-data/success-message.txt) bytes"
+
+      - name: Read and Display Success Message
         run: |
-          echo "✅ This is the step that runs after manual approval"
-          echo "🚀 You can add any deployment or critical operations here"
-          echo "⚡ The workflow was successfully approved and is now executing!"
+          echo "📖 Reading success message from temporary file..."
+          echo "==================== SUCCESS MESSAGE ===================="
+          cat /tmp/workflow-data/success-message.txt
+          echo "========================================================"
+          echo ""
+          echo "✅ This demonstrates how to pass data between workflow steps using files"
+          echo "🔐 This pattern can be used for secrets, configuration, or any data sharing"
+
+      - name: Additional Operations Step
+        run: |
+          echo "🚀 This is where you could add deployment or critical operations"
+          echo "📄 We have access to the success message file for any additional processing"
+          echo ""
+          echo "📊 File contents summary:"
+          echo "- Lines: $(wc -l < /tmp/workflow-data/success-message.txt)"
+          echo "- Words: $(wc -w < /tmp/workflow-data/success-message.txt)"
+          echo "- Characters: $(wc -c < /tmp/workflow-data/success-message.txt)"
+
+      - name: Cleanup Temporary Files
+        run: |
+          echo "🧹 Cleaning up temporary files..."
+          rm -rf /tmp/workflow-data
+          echo "✅ Temporary files removed"
