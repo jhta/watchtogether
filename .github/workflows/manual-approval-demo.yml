@@ -1,0 +1,69 @@
+name: Manual Approval Demo
+
+on:
+  # Trigger on manual dispatch for testing
+  workflow_dispatch:
+    inputs:
+      message:
+        description: "Message to log after approval"
+        required: false
+        default: "Hello from approved workflow!"
+
+  # Also trigger on push to main branch
+  push:
+    branches: [main]
+
+jobs:
+  request-approval:
+    runs-on: ubuntu-latest
+
+    # Set permissions for the action to create issues
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Request Manual Approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: ${{ github.actor }} # Uses the person who triggered the workflow as approver
+          minimum-approvals: 1
+          issue-title: "Manual Approval Required: ${{ github.workflow }}"
+          issue-body: |
+            ## Approval Request
+
+            **Workflow:** ${{ github.workflow }}
+            **Triggered by:** ${{ github.actor }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+
+            **Action:** This workflow will execute a console log after approval.
+
+            **Message to log:** ${{ github.event.inputs.message || 'Hello from approved workflow!' }}
+
+            ---
+
+            Please review and approve this workflow execution by commenting:
+            - `approve` or `approved` or `lgtm` or `yes` to approve
+            - `deny` or `denied` or `no` to reject
+          exclude-workflow-initiator-as-approver: false
+          fail-on-denial: true
+
+      - name: Log Success Message
+        run: |
+          echo "🎉 Workflow approved successfully!"
+          echo "📝 Message: ${{ github.event.inputs.message || 'Hello from approved workflow!' }}"
+          echo "👤 Approved by workflow initiator: ${{ github.actor }}"
+          echo "🌟 Timestamp: $(date)"
+          echo "🔗 Repository: ${{ github.repository }}"
+          echo "🎯 Branch: ${{ github.ref_name }}"
+
+      - name: Additional Success Step
+        run: |
+          echo "✅ This is the step that runs after manual approval"
+          echo "🚀 You can add any deployment or critical operations here"
+          echo "⚡ The workflow was successfully approved and is now executing!"
