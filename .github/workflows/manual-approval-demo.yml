@@ -31,32 +31,38 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Request Manual Approval
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: ${{ github.actor }} # Uses the person who triggered the workflow as approver
-          minimum-approvals: 1
-          issue-title: "Manual Approval Required: ${{ github.workflow }}"
-          issue-body: |
-            ## Approval Request
+      - name: Install TypeScript Dependencies
+        run: |
+          echo "📦 Installing TypeScript dependencies..."
+          npm install -g typescript ts-node @types/node
+          echo "✅ TypeScript dependencies installed"
 
-            **Workflow:** ${{ github.workflow }}
-            **Triggered by:** ${{ github.actor }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** ${{ github.sha }}
+      # - name: Request Manual Approval
+      #   uses: trstringer/manual-approval@v1
+      #   with:
+      #     secret: ${{ github.TOKEN }}
+      #     approvers: ${{ github.actor }} # Uses the person who triggered the workflow as approver
+      #     minimum-approvals: 1
+      #     issue-title: "Manual Approval Required: ${{ github.workflow }}"
+      #     issue-body: |
+      #       ## Approval Request
 
-            **Action:** This workflow will execute a console log after approval.
+      #       **Workflow:** ${{ github.workflow }}
+      #       **Triggered by:** ${{ github.actor }}
+      #       **Branch:** ${{ github.ref_name }}
+      #       **Commit:** ${{ github.sha }}
 
-            **Message to log:** ${{ github.event.inputs.message || 'Hello from approved workflow!' }}
+      #       **Action:** This workflow will execute a console log after approval.
 
-            ---
+      #       **Message to log:** ${{ github.event.inputs.message || 'Hello from approved workflow!' }}
 
-            Please review and approve this workflow execution by commenting:
-            - `approve` or `approved` or `lgtm` or `yes` to approve
-            - `deny` or `denied` or `no` to reject
-          exclude-workflow-initiator-as-approver: false
-          fail-on-denial: true
+      #       ---
+
+      #       Please review and approve this workflow execution by commenting:
+      #       - `approve` or `approved` or `lgtm` or `yes` to approve
+      #       - `deny` or `denied` or `no` to reject
+      #     exclude-workflow-initiator-as-approver: false
+      #     fail-on-denial: true
 
       - name: Create Success Message File
         run: |
@@ -79,7 +85,7 @@ jobs:
       - name: Read and Display Success Message with TypeScript
         run: |
           echo "🚀 Executing TypeScript script to read temporary file..."
-          npx ts-node scripts/read-temp-file.ts
+          ts-node scripts/read-temp-file.ts
           echo "✅ TypeScript script execution completed!"
 
       - name: Additional Operations Step
