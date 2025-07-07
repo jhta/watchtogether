@@ -34,7 +34,7 @@ jobs:
       - name: Install TypeScript Dependencies
         run: |
           echo "📦 Installing TypeScript dependencies..."
-          npm install -g typescript ts-node @types/node
+          npm install -g typescript ts-node @types/node tsx
           echo "✅ TypeScript dependencies installed"
 
       # - name: Request Manual Approval
@@ -85,7 +85,7 @@ jobs:
       - name: Read and Display Success Message with TypeScript
         run: |
           echo "🚀 Executing TypeScript script to read temporary file..."
-          ts-node scripts/read-temp-file.ts
+          npx tsx scripts/read-temp-file.ts
           echo "✅ TypeScript script execution completed!"
 
       - name: Additional Operations Step
